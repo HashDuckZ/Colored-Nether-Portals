@@ -36,11 +36,6 @@ loom {
     }
 }
 
-base {
-    def cleanName = mod_name.replace(" ", "")
-
-    archivesName = "${cleanName}-${project.name.capitalize()}"
-}
-
-version = "${project.version}+${minecraft_version}"
-group = project.group
+// Jar naming is inherited from buildSrc/multiloader-common.gradle so both loaders match:
+//   ${mod_id}-${project.name}-${minecraft_version}-${version}
+// e.g. colored_nether_portals-fabric-1.21-1.0.jar
