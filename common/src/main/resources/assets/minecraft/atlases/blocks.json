@@ -1,0 +1,9 @@
+{
+  "sources": [
+    {
+      "type": "single",
+      "resource": "colored_nether_portals:block/grayscale_portal",
+      "sprite": "colored_nether_portals:block/grayscale_portal"
+    }
+  ]
+}

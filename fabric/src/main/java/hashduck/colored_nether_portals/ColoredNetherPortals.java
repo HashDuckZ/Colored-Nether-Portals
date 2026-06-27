@@ -1,18 +1,95 @@
 package hashduck.colored_nether_portals;
 
+import hashduck.colored_nether_portals.blocks.ColoredNetherPortalBlock;
+import hashduck.colored_nether_portals.util.PortalColorManager;
+import hashduck.colored_nether_portals.util.PortalColorSavedData;
+import hashduck.colored_nether_portals.util.PortalTeleportQueue;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
+/**
+ * Main entry point for registering portal blocks and handling player interaction and data synchronization
+ */
 public class ColoredNetherPortals implements ModInitializer {
+
+    private static MinecraftServer serverInstance;
+
+    public static MinecraftServer getServer() {
+        return serverInstance;
+    }
 
     @Override
     public void onInitialize() {
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            serverInstance = server;
+        });
 
-        // This method is invoked by the Fabric mod loader when it is ready
-        // to load your mod. You can access Fabric and Common code in this
-        // project.
+        FabricNetworking.registerCommon();
 
-        // Use Fabric to bootstrap the Common mod.
-        Constants.LOG.info("Hello Fabric world!");
-        CommonClass.init();
+        ColoredNetherPortalBlock block = new ColoredNetherPortalBlock(
+                BlockBehaviour.Properties.ofFullCopy(Blocks.NETHER_PORTAL));
+
+        Registry.register(
+                BuiltInRegistries.BLOCK,
+                ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "colored_nether_portal"),
+                block
+        );
+        ColoredNetherPortalBlock.setInstance(block);
+        ColoredNetherPortalBlock.registerPortalPoi();
+
+        /**
+         * Registers a callback to handle players right-clicking blocks, allowing them to dye portals using items in their hand.
+         */
+        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            var stack = player.getItemInHand(hand);
+            var pos = hitResult.getBlockPos();
+            var state = world.getBlockState(pos);
+
+            if (PortalColorManager.tryDyePortal(world, pos, state, player, stack)) {
+                return InteractionResult.SUCCESS;
+            }
+            return InteractionResult.PASS;
+        });
+
+        /**
+         * Sends all existing portal color data to players when they join the server to ensure their client is synchronized
+         */
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            var level = handler.getPlayer().serverLevel();
+            var data = PortalColorSavedData.get(level);
+
+            var colors = data.getAllColors();
+            if (!colors.isEmpty()) {
+                FabricNetworking.sendToPlayer(handler.getPlayer(), colors);
+            }
+        });
+
+        /**
+         * Drops any pending teleport color so a disconnect mid-teleport can't leave a stale entry.
+         */
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+                PortalTeleportQueue.clear(handler.getPlayer().getUUID()));
+
+        /**
+         * Sends updated color portal data when a player changes worlds
+         */
+        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
+            var data = PortalColorSavedData.get(destination);
+
+            var colors = data.getAllColors();
+            if (!colors.isEmpty()) {
+                FabricNetworking.sendToPlayer(player, colors);
+            }
+        });
     }
 }

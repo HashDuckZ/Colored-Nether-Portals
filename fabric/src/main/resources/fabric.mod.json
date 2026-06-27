@@ -8,8 +8,9 @@
     "${mod_author}"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "${mod_website}",
+    "sources": "${mod_source}",
+    "issues": "${mod_issues}"
   },
   "license": "${license}",
   "icon": "${mod_id}.png",
@@ -17,6 +18,9 @@
   "entrypoints": {
     "main": [
       "hashduck.colored_nether_portals.ColoredNetherPortals"
+    ],
+    "client": [
+      "hashduck.colored_nether_portals.ColoredNetherPortalsClient"
     ]
   },
   "mixins": [
@@ -28,8 +32,5 @@
     "fabric-api": "*",
     "minecraft": "${minecraft_version}",
     "java": ">=${java_version}"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }

@@ -91,10 +91,11 @@ processResources {
                        'description'                  : project.description,
                        'neoforge_version'             : neoforge_version,
                        'neoforge_loader_version_range': neoforge_loader_version_range,
-                       "forge_version"                : forge_version,
-                       "forge_loader_version_range"   : forge_loader_version_range,
                        'credits'                      : credits,
-                       'java_version'                 : java_version]
+                       'java_version'                 : java_version,
+                       'mod_website'                  : mod_website,
+                       'mod_issues'                   : mod_issues,
+                       'mod_source'                   : mod_source]
 
     filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/mods.toml', 'META-INF/neoforge.mods.toml', '*.mixins.json']) {
         expand expandProps

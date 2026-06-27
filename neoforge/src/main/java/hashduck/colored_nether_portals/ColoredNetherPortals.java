@@ -1,19 +1,111 @@
 package hashduck.colored_nether_portals;
 
-
+import hashduck.colored_nether_portals.blocks.ColoredNetherPortalBlock;
+import hashduck.colored_nether_portals.util.PortalColorManager;
+import hashduck.colored_nether_portals.util.PortalColorSavedData;
+import hashduck.colored_nether_portals.util.PortalTeleportQueue;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredBlock;
 
+/**
+ * Main mod class handles block registration, player interactions for dyeing portals, and sending data when players join the server.
+ */
 @Mod(Constants.MOD_ID)
 public class ColoredNetherPortals {
 
-    public ColoredNetherPortals(IEventBus eventBus) {
-        // This method is invoked by the NeoForge mod loader when it is ready
-        // to load your mod. You can access NeoForge and Common code in this
-        // project.
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Constants.MOD_ID);
 
-        // Use NeoForge to bootstrap the Common mod.
-        Constants.LOG.info("Hello NeoForge world!");
-        CommonClass.init();
+    public static final DeferredBlock<Block> COLORED_PORTAL = BLOCKS.register("colored_nether_portal",
+            () -> new ColoredNetherPortalBlock(BlockBehaviour.Properties.of()
+                    .noCollission()
+                    .randomTicks()
+                    .strength(-1.0F)
+                    .sound(SoundType.GLASS)
+                    .lightLevel(state -> 11)
+                    .pushReaction(PushReaction.BLOCK)));
+
+    public ColoredNetherPortals(IEventBus modBus) {
+        BLOCKS.register(modBus);
+
+        modBus.addListener(this::commonSetup);
+        modBus.addListener(NeoForgeNetworking::onRegisterPayloads);
+
+        NeoForgeNetworking.registerSender();
+
+        NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onUseItemOnBlock);
+        NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onPlayerJoin);
+        NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onPlayerChangeDimension);
+        NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onPlayerLogout);
+    }
+
+    private void commonSetup(final FMLCommonSetupEvent event) {
+        ColoredNetherPortalBlock.setInstance(COLORED_PORTAL.get());
+        event.enqueueWork(ColoredNetherPortalBlock::registerPortalPoi);
+    }
+
+    /**
+     * Handles the interaction when a player uses dye on a portal block.
+     */
+    private static void onUseItemOnBlock(UseItemOnBlockEvent event) {
+        if (event.getUsePhase() != UseItemOnBlockEvent.UsePhase.BLOCK) {
+            return;
+        }
+
+        if (PortalColorManager.tryDyePortal(
+                event.getLevel(),
+                event.getPos(),
+                event.getLevel().getBlockState(event.getPos()),
+                event.getEntity(),
+                event.getItemStack())) {
+
+            event.cancelWithResult(net.minecraft.world.ItemInteractionResult.SUCCESS);
+        }
+    }
+
+    /**
+     * Syncs existing portal colors to the client when they join the server.
+     */
+    private static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            PortalColorSavedData data = PortalColorSavedData.get(player.serverLevel());
+
+            var colors = data.getAllColors();
+            if (!colors.isEmpty()) {
+                NeoForgeNetworking.sendToPlayer(player, colors);
+            }
+        }
+    }
+
+    /**
+     * Drops any pending teleport color so a disconnect mid-teleport can't leave a stale entry.
+     */
+    private static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        PortalTeleportQueue.clear(event.getEntity().getUUID());
+    }
+
+    /**
+     * Sends updated color portal data when a player changes worlds
+     */
+    private static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            PortalColorSavedData data = PortalColorSavedData.get(player.serverLevel());
+
+            var colors = data.getAllColors();
+            if (!colors.isEmpty()) {
+                NeoForgeNetworking.sendToPlayer(player, colors);
+            }
+        }
     }
 }

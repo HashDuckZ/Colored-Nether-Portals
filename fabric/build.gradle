@@ -35,3 +35,12 @@ loom {
         }
     }
 }
+
+base {
+    def cleanName = mod_name.replace(" ", "")
+
+    archivesName = "${cleanName}-${project.name.capitalize()}"
+}
+
+version = "${project.version}+${minecraft_version}"
+group = project.group
