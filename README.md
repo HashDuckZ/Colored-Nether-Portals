@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="banner.png" alt="Colored Nether Portals banner">
+<img src="banner.png" width="250" alt="Colored Nether Portals banner">
 
 # Colored Nether Portals
 
