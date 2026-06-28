@@ -4,7 +4,6 @@ import hashduck.colored_nether_portals.blocks.ColoredNetherPortalBlock;
 import hashduck.colored_nether_portals.util.PortalColorManager;
 import hashduck.colored_nether_portals.util.PortalColorSavedData;
 import hashduck.colored_nether_portals.util.PortalTeleportQueue;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -15,7 +14,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.player.UseItemOnBlockEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredBlock;
 
@@ -44,7 +43,7 @@ public class ColoredNetherPortals {
 
         NeoForgeNetworking.registerSender();
 
-        NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onUseItemOnBlock);
+        NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onPlayerJoin);
         NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onPlayerChangeDimension);
         NeoForge.EVENT_BUS.addListener(ColoredNetherPortals::onPlayerLogout);
@@ -58,21 +57,18 @@ public class ColoredNetherPortals {
     /**
      * Handles the interaction when a player uses dye on a portal block.
      */
-    private static void onUseItemOnBlock(UseItemOnBlockEvent event) {
-        if (event.getUsePhase() != UseItemOnBlockEvent.UsePhase.BLOCK) {
-            return;
-        }
+private static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+    if (PortalColorManager.tryDyePortal(
+            event.getLevel(),
+            event.getPos(),
+            event.getLevel().getBlockState(event.getPos()),
+            event.getEntity(),
+            event.getItemStack())) {
 
-        if (PortalColorManager.tryDyePortal(
-                event.getLevel(),
-                event.getPos(),
-                event.getLevel().getBlockState(event.getPos()),
-                event.getEntity(),
-                event.getItemStack())) {
-
-            event.cancelWithResult(net.minecraft.world.ItemInteractionResult.SUCCESS);
-        }
+        event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
+        event.setCanceled(true);
     }
+}
 
     /**
      * Syncs existing portal colors to the client when they join the server.
