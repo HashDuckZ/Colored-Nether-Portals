@@ -14,6 +14,8 @@
 
 ## ✨ Overview
 
+**Supports custom portal textures**
+
 Colored Nether Portals lets you recolor any nether portal with a dye. Right-click an active
 portal with a dye and the whole portal takes on that color - and the color
 follows you through the full portal experience, not just the block.
