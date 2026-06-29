@@ -33,15 +33,14 @@ public final class NeoForgeNetworking {
                 PortalColorPayload.TYPE,
                 PortalColorPayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> {
-                    // 1. Update the Client Cache (The data storage)
                     PortalColorTracker.handlePayload(payload);
 
-                    // 2. The Visual Update: Force a redraw of every portal block in the packet
-                    var level = context.player().level();
-                    for (BlockPos pos : payload.positions()) {
-                        var state = level.getBlockState(pos);
-                        // Flag 3 tells the renderer to discard the old chunk and redraw the block immediately
-                        level.sendBlockUpdated(pos, state, state, 3);
+                    if (!payload.remove()) {
+                        var level = context.player().level();
+                        for (BlockPos pos : payload.positions()) {
+                            var state = level.getBlockState(pos);
+                            level.sendBlockUpdated(pos, state, state, 3);
+                        }
                     }
                 })
         );

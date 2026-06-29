@@ -66,11 +66,9 @@ public final class FabricNetworking {
                 DyeColor color = payload.remove() ? null : DyeColor.byId(payload.colorId());
 
                 for (BlockPos pos : payload.positions()) {
-                    // 1. Update the Cache using the PAYLOAD'S dimension, not the player's!
                     PortalColorClientCache.set(payload.dimension(), pos, color);
 
-                    // 2. Trigger the Redraw (Only if the client has actually loaded into this dimension)
-                    if (context.client().level != null && context.client().level.dimension() == payload.dimension()) {
+                    if (!payload.remove() && context.client().level != null && context.client().level.dimension() == payload.dimension()) {
                         var state = context.client().level.getBlockState(pos);
                         context.client().level.sendBlockUpdated(pos, state, state, 3);
                     }

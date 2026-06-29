@@ -13,8 +13,9 @@ public final class PortalColorTracker {
     private static final Map<UUID, DyeColor> ACTIVE_PLAYER_COLORS = new ConcurrentHashMap<>();
 
     public static void handlePayload(PortalColorPayload payload) {
+        DyeColor color = payload.remove() ? null : payload.color();
         payload.positions().forEach(pos ->
-                PortalColorClientCache.set(payload.dimension(), pos, payload.color())
+                PortalColorClientCache.set(payload.dimension(), pos, color)
         );
     }
 
