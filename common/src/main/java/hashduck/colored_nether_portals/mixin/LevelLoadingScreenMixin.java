@@ -1,28 +1,28 @@
 package hashduck.colored_nether_portals.mixin;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import hashduck.colored_nether_portals.blocks.ColoredNetherPortalBlock;
-import hashduck.colored_nether_portals.client.PortalColorClientCache;
 import hashduck.colored_nether_portals.client.PortalColorTracker;
 import hashduck.colored_nether_portals.util.DyeColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.ReceivingLevelScreen;
+import net.minecraft.client.gui.screens.LevelLoadingScreen;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.DyeColor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 
 /**
  * Changes the nether loading screen portal texture
  */
-@Mixin(ReceivingLevelScreen.class)
-public class ReceivingLevelScreenMixin {
+@Mixin(LevelLoadingScreen.class)
+public class LevelLoadingScreenMixin {
 
-    // Swape the texture returned in getNetherPortalSprite with the gray texture if the player last entered a colored portal
+    // Swap the texture returned in getNetherPortalSprite with the gray texture if the player last entered a colored portal
     @Inject(method = "getNetherPortalSprite", at = @At("HEAD"), cancellable = true)
     private void changeLoadingTexture(CallbackInfoReturnable<TextureAtlasSprite> cir) {
         var player = Minecraft.getInstance().player;
@@ -39,25 +39,20 @@ public class ReceivingLevelScreenMixin {
         }
     }
 
-    // Before showing the background image, change the color to the last entered portal color
-    @Inject(method = "renderBackground", at = @At("HEAD"))
-    private void applyLoadingColor(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+    // Tint the background portal texture with the last entered portal's color
+    @Redirect(
+            method = "renderBackground",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;IIII)V")
+    )
+    private void applyLoadingColor(GuiGraphics guiGraphics, RenderPipeline pipeline, TextureAtlasSprite sprite, int x, int y, int width, int height) {
         var player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
-
-        DyeColor color = PortalColorTracker.getActiveColor(player.getUUID());
+        DyeColor color = player != null ? PortalColorTracker.getActiveColor(player.getUUID()) : null;
 
         if (color != null) {
             float[] rgb = DyeColorUtil.getFireworkRgb(color);
-            guiGraphics.setColor(rgb[0], rgb[1], rgb[2], 1.0F);
+            guiGraphics.blitSprite(pipeline, sprite, x, y, width, height, ARGB.colorFromFloat(1.0F, rgb[0], rgb[1], rgb[2]));
+        } else {
+            guiGraphics.blitSprite(pipeline, sprite, x, y, width, height);
         }
-    }
-
-    // Reset the gui color to white after showing the background image
-    @Inject(method = "renderBackground", at = @At("RETURN"))
-    private void clearLoadingColor(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

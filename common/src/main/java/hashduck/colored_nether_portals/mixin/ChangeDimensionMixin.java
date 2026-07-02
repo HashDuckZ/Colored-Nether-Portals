@@ -9,13 +9,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.level.portal.TeleportTransition;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -36,17 +35,17 @@ public abstract class ChangeDimensionMixin {
     }
 
     //Gets the color of the portal before changing dimensions and saves it to the tracker
-    @Inject(method = "changeDimension", at = @At("HEAD"))
+    @Inject(method = "teleport", at = @At("HEAD"))
     private void captureSourceColor(
-            DimensionTransition transition,
-            CallbackInfoReturnable<Entity> cir
+            TeleportTransition transition,
+            CallbackInfoReturnable<ServerPlayer> cir
     ) {
 
-        BlockPos portalPos = findPortalAtPlayer(player().serverLevel(), player());
+        BlockPos portalPos = findPortalAtPlayer(player().level(), player());
         if (portalPos == null) {
             return;
         }
-        PortalColorSavedData data = PortalColorSavedData.get(player().serverLevel());
+        PortalColorSavedData data = PortalColorSavedData.get(player().level());
         DyeColor color = data.getColor(portalPos);
         if (color != null) {
             PortalTeleportQueue.prepare(player().getUUID(), color);
@@ -56,9 +55,9 @@ public abstract class ChangeDimensionMixin {
 
     //Checks if the destination portal exist and sets the color if it does not
     @Inject(method = "changeDimension", at = @At("RETURN"))
-    private void onChangeDimension(DimensionTransition transition, CallbackInfoReturnable<Entity> cir) {
-        Entity result = cir.getReturnValue();
-        if (!(result instanceof ServerPlayer player)) {
+    private void onChangeDimension(TeleportTransition transition, CallbackInfoReturnable<ServerPlayer> cir) {
+        ServerPlayer player = cir.getReturnValue();
+        if (player == null) {
             return;
         }
 
@@ -70,7 +69,7 @@ public abstract class ChangeDimensionMixin {
         if (sourceColor == null) {
             return;
         }
-        ServerLevel destLevel = player.serverLevel();
+        ServerLevel destLevel = player.level();
         BlockPos portalPos = findPortalAtPlayer(destLevel, player);
         if (portalPos == null) return;
 

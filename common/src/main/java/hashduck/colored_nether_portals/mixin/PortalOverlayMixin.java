@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -87,22 +88,20 @@ public class PortalOverlayMixin {
     // Sets the color of the overlay to match the last entered portal's color
     @Redirect(
             method = "renderPortalOverlay",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;setColor(FFFF)V", ordinal = 0)
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/util/ARGB;white(F)I")
     )
-    private void redirectPortalColor(GuiGraphics instance, float r, float g, float b, float a) {
+    private int tintPortalOverlay(float alpha) {
         Minecraft client = Minecraft.getInstance();
         var player = client.player;
 
-        if (player == null || client.level == null || ColoredNetherPortalBlock.getInstance() == null) {
-            return;
-        }
-        DyeColor active = PortalColorTracker.getActiveColor(player.getUUID());
+        if (player != null && client.level != null && ColoredNetherPortalBlock.getInstance() != null) {
+            DyeColor active = PortalColorTracker.getActiveColor(player.getUUID());
 
-        if (active != null) {
-            float[] color = DyeColorUtil.getFireworkRgb(active);
-            instance.setColor(color[0], color[1], color[2], a);
-        } else {
-            instance.setColor(r, g, b, a);
+            if (active != null) {
+                float[] color = DyeColorUtil.getFireworkRgb(active);
+                return ARGB.colorFromFloat(alpha, color[0], color[1], color[2]);
+            }
         }
+        return ARGB.white(alpha);
     }
 }
