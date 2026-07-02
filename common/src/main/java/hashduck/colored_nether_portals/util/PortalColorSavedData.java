@@ -25,7 +25,7 @@ public class PortalColorSavedData extends SavedData {
         super();
     }
 
-=    private record Entry(long pos, int color) {
+    private record Entry(long pos, int color) {
         static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.LONG.fieldOf("pos").forGetter(Entry::pos),
                 Codec.INT.fieldOf("color").forGetter(Entry::color)
