@@ -1,24 +1,23 @@
 package hashduck.colored_nether_portals.util;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import hashduck.colored_nether_portals.Constants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PortalColorSavedData extends SavedData {
     private static final String DATA_NAME = Constants.MOD_ID;
     private static final String TAG_PORTAL_COLORS = "portal_colors";
-    private static final String TAG_POS = "pos";
-    private static final String TAG_COLOR = "color";
 
     private final Map<BlockPos, DyeColor> colors = new HashMap<>();
 
@@ -26,12 +25,37 @@ public class PortalColorSavedData extends SavedData {
         super();
     }
 
+=    private record Entry(long pos, int color) {
+        static final Codec<Entry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.LONG.fieldOf("pos").forGetter(Entry::pos),
+                Codec.INT.fieldOf("color").forGetter(Entry::color)
+        ).apply(instance, Entry::new));
+    }
 
-    public static final Factory<PortalColorSavedData> FACTORY = new Factory<>(PortalColorSavedData::new, PortalColorSavedData::load, null);
+    public static final Codec<PortalColorSavedData> CODEC = Entry.CODEC.listOf()
+            .optionalFieldOf(TAG_PORTAL_COLORS, List.of())
+            .xmap(PortalColorSavedData::fromEntries, PortalColorSavedData::toEntries)
+            .codec();
 
+    public static final SavedDataType<PortalColorSavedData> TYPE = new SavedDataType<>(
+            DATA_NAME, PortalColorSavedData::new, CODEC, DataFixTypes.SAVED_DATA_RANDOM_SEQUENCES);
+
+    private static PortalColorSavedData fromEntries(List<Entry> entries) {
+        PortalColorSavedData data = new PortalColorSavedData();
+        for (Entry entry : entries) {
+            data.colors.put(BlockPos.of(entry.pos()), DyeColor.byId(entry.color()));
+        }
+        return data;
+    }
+
+    private List<Entry> toEntries() {
+        return colors.entrySet().stream()
+                .map(e -> new Entry(e.getKey().asLong(), e.getValue().getId()))
+                .toList();
+    }
 
     public static PortalColorSavedData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
+        return level.getDataStorage().computeIfAbsent(TYPE);
     }
 
     public void setColor(BlockPos pos, DyeColor color) {
@@ -52,34 +76,5 @@ public class PortalColorSavedData extends SavedData {
 
     public Map<BlockPos, DyeColor> getAllColors() {
         return Map.copyOf(colors);
-    }
-
-    @Override
-    public CompoundTag save(CompoundTag compoundTag, HolderLookup.Provider provider) {
-        ListTag listTag = new ListTag();
-
-        colors.forEach((pos, color) -> {
-            CompoundTag entry = new CompoundTag();
-            entry.putLong(TAG_POS, pos.asLong());
-            entry.putInt(TAG_COLOR, color.getId());
-            listTag.add(entry);
-        });
-
-        compoundTag.put(TAG_PORTAL_COLORS, listTag);
-        return compoundTag;
-    }
-
-    public static PortalColorSavedData load(CompoundTag compoundTag, HolderLookup.Provider provider) {
-        PortalColorSavedData data = new PortalColorSavedData();
-        ListTag listTag = compoundTag.getList(TAG_PORTAL_COLORS, Tag.TAG_COMPOUND);
-
-        for (int i = 0; i < listTag.size(); i++) {
-            CompoundTag entry = listTag.getCompound(i);
-            BlockPos pos = BlockPos.of(entry.getLong(TAG_POS));
-            DyeColor color = DyeColor.byId(entry.getInt(TAG_COLOR));
-            data.colors.put(pos, color);
-        }
-
-        return data;
     }
 }

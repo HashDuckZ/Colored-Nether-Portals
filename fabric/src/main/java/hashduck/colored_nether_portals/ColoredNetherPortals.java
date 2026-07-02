@@ -11,9 +11,12 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
@@ -36,14 +39,14 @@ public class ColoredNetherPortals implements ModInitializer {
 
         FabricNetworking.registerCommon();
 
-        ColoredNetherPortalBlock block = new ColoredNetherPortalBlock(
-                BlockBehaviour.Properties.ofFullCopy(Blocks.NETHER_PORTAL));
+        ResourceKey<Block> blockKey = ResourceKey.create(
+                Registries.BLOCK,
+                Identifier.fromNamespaceAndPath(Constants.MOD_ID, "colored_nether_portal"));
 
-        Registry.register(
-                BuiltInRegistries.BLOCK,
-                ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "colored_nether_portal"),
-                block
-        );
+        ColoredNetherPortalBlock block = new ColoredNetherPortalBlock(
+                BlockBehaviour.Properties.ofFullCopy(Blocks.NETHER_PORTAL).setId(blockKey));
+
+        Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
         ColoredNetherPortalBlock.setInstance(block);
         ColoredNetherPortalBlock.registerPortalPoi();
 
@@ -65,7 +68,7 @@ public class ColoredNetherPortals implements ModInitializer {
          * Sends all existing portal color data to players when they join the server to ensure their client is synchronized
          */
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            var level = handler.getPlayer().serverLevel();
+            var level = handler.getPlayer().level();
             var data = PortalColorSavedData.get(level);
 
             var colors = data.getAllColors();

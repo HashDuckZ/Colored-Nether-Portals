@@ -26,14 +26,15 @@ public class ColoredNetherPortals {
 
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Constants.MOD_ID);
 
-    public static final DeferredBlock<Block> COLORED_PORTAL = BLOCKS.register("colored_nether_portal",
-            () -> new ColoredNetherPortalBlock(BlockBehaviour.Properties.of()
-                    .noCollission()
+    public static final DeferredBlock<Block> COLORED_PORTAL = BLOCKS.registerBlock("colored_nether_portal",
+            ColoredNetherPortalBlock::new,
+            BlockBehaviour.Properties.of()
+                    .noCollision()
                     .randomTicks()
                     .strength(-1.0F)
                     .sound(SoundType.GLASS)
                     .lightLevel(state -> 11)
-                    .pushReaction(PushReaction.BLOCK)));
+                    .pushReaction(PushReaction.BLOCK));
 
     public ColoredNetherPortals(IEventBus modBus) {
         BLOCKS.register(modBus);
@@ -75,7 +76,7 @@ private static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
      */
     private static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            PortalColorSavedData data = PortalColorSavedData.get(player.serverLevel());
+            PortalColorSavedData data = PortalColorSavedData.get(player.level());
 
             var colors = data.getAllColors();
             if (!colors.isEmpty()) {
@@ -96,7 +97,7 @@ private static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
      */
     private static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            PortalColorSavedData data = PortalColorSavedData.get(player.serverLevel());
+            PortalColorSavedData data = PortalColorSavedData.get(player.level());
 
             var colors = data.getAllColors();
             if (!colors.isEmpty()) {

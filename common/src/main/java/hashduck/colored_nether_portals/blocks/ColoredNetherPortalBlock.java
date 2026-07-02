@@ -9,7 +9,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,23 +42,19 @@ public class ColoredNetherPortalBlock extends NetherPortalBlock {
         }
         Map<BlockState, Holder<PoiType>> typeByState = PoiTypesAccessor.getTypeByState();
         Holder<PoiType> netherPortalPoi =
-                BuiltInRegistries.POINT_OF_INTEREST_TYPE.getHolderOrThrow(PoiTypes.NETHER_PORTAL);
+                BuiltInRegistries.POINT_OF_INTEREST_TYPE.getOrThrow(PoiTypes.NETHER_PORTAL);
         for (BlockState state : block.getStateDefinition().getPossibleStates()) {
             typeByState.putIfAbsent(state, netherPortalPoi);
         }
     }
 
-    //Clean up the color cache when a portal block is removed
+    //Clean up the color cache when a portal block is removed (only called when the block actually changes to a different block)
     @Override
-    public void onRemove(BlockState state, @NotNull Level level, @NotNull BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock())) {
-            if (level instanceof ServerLevel serverLevel) {
-                PortalColorSavedData data = PortalColorSavedData.get(serverLevel);
-                data.removeColor(pos);
+    protected void affectNeighborsAfterRemoval(BlockState state, @NotNull ServerLevel level, @NotNull BlockPos pos, boolean movedByPiston) {
+        PortalColorSavedData data = PortalColorSavedData.get(level);
+        data.removeColor(pos);
 
-                PortalColorPayload.sendRemoveToTrackingPlayers(serverLevel, pos);
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
+        PortalColorPayload.sendRemoveToTrackingPlayers(level, pos);
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
     }
 }
