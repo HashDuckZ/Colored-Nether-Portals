@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "colored_nether_portals:block/colored_nether_portal_ns"
+    },
+    "axis=z": {
+      "model": "colored_nether_portals:block/colored_nether_portal_ew"
+    }
+  }
+}
