@@ -7,22 +7,18 @@ import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.SpriteLoader;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceMetadata;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.Optional;
 
 /**
  * Replaces the nether portal texture in the sprite list with a grayed version of the current resource pack's texture.
@@ -33,12 +29,12 @@ import java.util.concurrent.Executor;
 public class GrayscalePortalSpriteMixin {
 
     @Unique
-    private static final ResourceLocation GRAYSCALE_PORTAL_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "block/grayscale_portal");
+    private static final Identifier GRAYSCALE_PORTAL_TEXTURE =
+            Identifier.fromNamespaceAndPath(Constants.MOD_ID, "block/grayscale_portal");
 
     @Unique
-    private static final ResourceLocation VANILLA_PORTAL_TEXTURE =
-            ResourceLocation.withDefaultNamespace("textures/block/nether_portal.png");
+    private static final Identifier VANILLA_PORTAL_TEXTURE =
+            Identifier.withDefaultNamespace("textures/block/nether_portal.png");
 
 
     //Creates a gray texture of the nether portal texture from the current resource pack and applies it to our texture
@@ -78,18 +74,19 @@ public class GrayscalePortalSpriteMixin {
                 NativeImage grayscaleImage = desaturate(originalImage);
 
                 ResourceMetadata metadata = vanillaResource.metadata();
-                AnimationMetadataSection animMeta = metadata
-                        .getSection(AnimationMetadataSection.SERIALIZER)
-                        .orElse(AnimationMetadataSection.EMPTY);
+                Optional<AnimationMetadataSection> animMeta = metadata.getSection(AnimationMetadataSection.TYPE);
 
-                FrameSize frameSize = animMeta.calculateFrameSize(
-                        grayscaleImage.getWidth(), grayscaleImage.getHeight());
+                FrameSize frameSize = animMeta
+                        .map(meta -> meta.calculateFrameSize(grayscaleImage.getWidth(), grayscaleImage.getHeight()))
+                        .orElseGet(() -> new FrameSize(grayscaleImage.getWidth(), grayscaleImage.getHeight()));
 
                 return new SpriteContents(
                         GRAYSCALE_PORTAL_TEXTURE,
                         frameSize,
                         grayscaleImage,
-                        metadata
+                        animMeta,
+                        List.of(),
+                        Optional.empty()
                 );
             }
         } catch (IOException | IllegalStateException e) {
@@ -112,12 +109,12 @@ public class GrayscalePortalSpriteMixin {
         float maxLum = 0.0f;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int pixel = original.getPixelRGBA(x, y);
+                int pixel = original.getPixel(x, y); // ARGB
                 int a = (pixel >> 24) & 0xFF;
                 if (a == 0) continue;
-                int b = (pixel >> 16) & 0xFF;
+                int r = (pixel >> 16) & 0xFF;
                 int g = (pixel >> 8) & 0xFF;
-                int r = pixel & 0xFF;
+                int b = pixel & 0xFF;
                 float lum = (0.299f * r + 0.587f * g + 0.114f * b) / 255.0f;
                 if (lum < minLum) minLum = lum;
                 if (lum > maxLum) maxLum = lum;
@@ -128,11 +125,11 @@ public class GrayscalePortalSpriteMixin {
         // Pass 2: stretch to 0..1, then apply curve
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int pixel = original.getPixelRGBA(x, y);
+                int pixel = original.getPixel(x, y); // ARGB
                 int a = (pixel >> 24) & 0xFF;
-                int b = (pixel >> 16) & 0xFF;
+                int r = (pixel >> 16) & 0xFF;
                 int g = (pixel >> 8) & 0xFF;
-                int r = pixel & 0xFF;
+                int b = pixel & 0xFF;
 
                 float luminance = (0.299f * r + 0.587f * g + 0.114f * b) / 255.0f;
                 // Normalize to full 0..1 range
@@ -142,7 +139,7 @@ public class GrayscalePortalSpriteMixin {
                 float adjusted = (float) Math.sqrt(0.20f + normalized * 0.80f);
                 int grayValue = Math.min(255, (int) (adjusted * 255));
                 int grayscalePixel = (a << 24) | (grayValue << 16) | (grayValue << 8) | grayValue;
-                grayscale.setPixelRGBA(x, y, grayscalePixel);
+                grayscale.setPixel(x, y, grayscalePixel);
             }
         }
 
