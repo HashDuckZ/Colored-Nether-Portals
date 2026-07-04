@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import hashduck.colored_nether_portals.Constants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.item.DyeColor;
@@ -16,7 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 public class PortalColorSavedData extends SavedData {
-    private static final String DATA_NAME = Constants.MOD_ID;
+    
+    private static final Identifier DATA_NAME = Identifier.fromNamespaceAndPath(Constants.MOD_ID, "portal_colors");
     private static final String TAG_PORTAL_COLORS = "portal_colors";
 
     private final Map<BlockPos, DyeColor> colors = new HashMap<>();

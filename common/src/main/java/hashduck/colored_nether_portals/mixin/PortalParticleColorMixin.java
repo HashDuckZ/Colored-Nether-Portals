@@ -29,7 +29,7 @@ public abstract class PortalParticleColorMixin {
         if (color != null) {
             float[] rgb = DyeColorUtil.getFireworkRgb(color);
 
-            float twinkleShade = level.random.nextFloat() * 0.6F + 0.4F;
+            float twinkleShade = level.getRandom().nextFloat() * 0.6F + 0.4F;
 
             SingleQuadParticle self = (SingleQuadParticle)(Object) this;
             self.setColor(rgb[0] * twinkleShade, rgb[1] * twinkleShade, rgb[2] * twinkleShade);

@@ -8,8 +8,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -34,11 +34,10 @@ public final class PortalColorManager {
             return false;
         }
 
-        if (!(stack.getItem() instanceof DyeItem dyeItem)) {
+        DyeColor color = stack.get(DataComponents.DYE);
+        if (color == null) {
             return false;
         }
-
-        DyeColor color = dyeItem.getDyeColor();
 
         if (level instanceof ServerLevel serverLevel) {
 
