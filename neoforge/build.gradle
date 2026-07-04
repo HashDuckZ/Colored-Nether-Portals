@@ -9,11 +9,11 @@ neoForge {
     def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
     if (at.exists()) {
         accessTransformers.add(at.absolutePath)
-    }
+    }    
     parchment {
         minecraftVersion = parchment_minecraft
         mappingsVersion = parchment_version
-    }
+    }    
     runs {
         configureEach {
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
@@ -23,7 +23,8 @@ neoForge {
             client()
         }
         data {
-            data()
+            clientData()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
         server {
             server()

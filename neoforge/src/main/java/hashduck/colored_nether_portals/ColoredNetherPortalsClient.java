@@ -5,7 +5,7 @@ import hashduck.colored_nether_portals.client.PortalColorClientCache;
 import hashduck.colored_nether_portals.util.DyeColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.world.item.DyeColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,7 +16,7 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 /**
  * Sets the portal block to translucent and registering block color handlers that apply dimensional data from the client cache.
  */
-@EventBusSubscriber(modid = Constants.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Constants.MOD_ID, value = Dist.CLIENT)
 public class ColoredNetherPortalsClient {
 
     /**
@@ -26,7 +26,7 @@ public class ColoredNetherPortalsClient {
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> ItemBlockRenderTypes.setRenderLayer(
                 ColoredNetherPortalBlock.getInstance(),
-                RenderType.translucent()
+                ChunkSectionLayer.TRANSLUCENT
         ));
     }
 

@@ -4,11 +4,11 @@ import hashduck.colored_nether_portals.blocks.ColoredNetherPortalBlock;
 import hashduck.colored_nether_portals.client.PortalColorClientCache;
 import hashduck.colored_nether_portals.util.DyeColorUtil;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.world.item.DyeColor;
 
 /**
@@ -20,7 +20,7 @@ public class ColoredNetherPortalsClient implements ClientModInitializer {
     public void onInitializeClient() {
         FabricNetworking.registerClient();
 
-        BlockRenderLayerMap.INSTANCE.putBlock(ColoredNetherPortalBlock.getInstance(), RenderType.translucent());
+        BlockRenderLayerMap.putBlock(ColoredNetherPortalBlock.getInstance(), ChunkSectionLayer.TRANSLUCENT);
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> PortalColorClientCache.clear());
 
