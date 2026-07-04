@@ -28,7 +28,7 @@ public class ColoredNetherPortals {
 
     public static final DeferredBlock<Block> COLORED_PORTAL = BLOCKS.registerBlock("colored_nether_portal",
             ColoredNetherPortalBlock::new,
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .noCollision()
                     .randomTicks()
                     .strength(-1.0F)

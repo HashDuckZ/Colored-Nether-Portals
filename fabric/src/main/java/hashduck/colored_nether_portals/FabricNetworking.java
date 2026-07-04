@@ -29,7 +29,7 @@ public final class FabricNetworking {
      * Registers the network payload and the server-to-client broadcasting logic
      */
     public static void registerCommon() {
-        PayloadTypeRegistry.playS2C().register(PortalColorPayload.TYPE, PortalColorPayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(PortalColorPayload.TYPE, PortalColorPayload.STREAM_CODEC);
         PortalColorPayload.registerSender((dimKey, positions, color, remove) -> {
             var server = ColoredNetherPortals.getServer();
             if (server == null || positions.isEmpty()) {
@@ -45,8 +45,8 @@ public final class FabricNetworking {
             Set<Long> seenChunks = new HashSet<>();
             Set<ServerPlayer> recipients = new HashSet<>();
             for (BlockPos pos : positions) {
-                if (seenChunks.add(ChunkPos.asLong(pos))) {
-                    recipients.addAll(PlayerLookup.tracking(serverLevel, new ChunkPos(pos)));
+                if (seenChunks.add(ChunkPos.pack(pos))) {
+                    recipients.addAll(PlayerLookup.tracking(serverLevel, ChunkPos.containing(pos)));
                 }
             }
 

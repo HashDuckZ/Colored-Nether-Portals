@@ -5,7 +5,7 @@ import hashduck.colored_nether_portals.util.PortalColorManager;
 import hashduck.colored_nether_portals.util.PortalColorSavedData;
 import hashduck.colored_nether_portals.util.PortalTeleportQueue;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -86,7 +86,7 @@ public class ColoredNetherPortals implements ModInitializer {
         /**
          * Sends updated color portal data when a player changes worlds
          */
-        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> {
             var data = PortalColorSavedData.get(destination);
 
             var colors = data.getAllColors();

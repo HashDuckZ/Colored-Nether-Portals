@@ -59,8 +59,8 @@ public final class NeoForgeNetworking {
 
                 Set<Long> seenChunks = new HashSet<>();
                 for (BlockPos pos : positions) {
-                    if (seenChunks.add(ChunkPos.asLong(pos))) {
-                        PacketDistributor.sendToPlayersTrackingChunk(level, new ChunkPos(pos), payload);
+                    if (seenChunks.add(ChunkPos.pack(pos))) {
+                        PacketDistributor.sendToPlayersTrackingChunk(level, ChunkPos.containing(pos), payload);
                     }
                 }
             }
