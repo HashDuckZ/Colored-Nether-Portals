@@ -5,7 +5,7 @@ import hashduck.colored_nether_portals.client.PortalColorClientCache;
 import hashduck.colored_nether_portals.client.PortalColorTracker;
 import hashduck.colored_nether_portals.util.DyeColorUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Changes the color and texture of the nether portal texture that fades in while teleporting
  */
-@Mixin(Gui.class)
+@Mixin(Hud.class)
 public class PortalOverlayMixin {
 
     // Checks if the player is touching a colored portal and caches the color for rendering.
