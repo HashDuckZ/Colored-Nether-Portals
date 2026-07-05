@@ -41,9 +41,20 @@ follows you through the full portal experience, not just the block.
 
 | Minecraft | Mod version | Loaders          |
 | --------- | ----------- | ---------------- |
-| 26.1      | 1.0         | Fabric, NeoForge |
+| 26.1      | 1.1         | Fabric, NeoForge |
 | 1.21.11   | 1.0         | Fabric, NeoForge |
 | 1.21      | 1.0         | Fabric, NeoForge |
+
+## 📝 Changelog
+
+### 1.1
+
+- Improved portal colors - portals now glow brighter, so dyed colors stay vivid
+  under the darker lighting introduced in Minecraft 26.1.
+
+### 1.0
+
+- Initial release.
 
 ## 📄 License
 
