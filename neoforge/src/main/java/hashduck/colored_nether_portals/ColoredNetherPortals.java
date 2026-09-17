@@ -34,7 +34,7 @@ public class ColoredNetherPortals {
                     .strength(-1.0F)
                     .sound(SoundType.GLASS)
                     .lightLevel(state -> 11)
-                    .pushReaction(PushReaction.BLOCK));
+                    .pushReaction(PushReaction.IMMOVEABLE));
 
     public ColoredNetherPortals(IEventBus modBus) {
         BLOCKS.register(modBus);
