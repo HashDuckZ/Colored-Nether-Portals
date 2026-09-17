@@ -1,6 +1,6 @@
 package hashduck.colored_nether_portals.mixin;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import hashduck.colored_nether_portals.blocks.ColoredNetherPortalBlock;
 import hashduck.colored_nether_portals.client.PortalColorTracker;
 import hashduck.colored_nether_portals.util.DyeColorUtil;
@@ -44,7 +44,7 @@ public class LevelLoadingScreenMixin {
     // Tint the background portal texture with the last entered portal's color
     @Redirect(
             method = "extractBackground",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;IIII)V")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;IIII)V")
     )
     private void applyLoadingColor(GuiGraphicsExtractor graphics, RenderPipeline pipeline, TextureAtlasSprite sprite, int x, int y, int width, int height) {
         var player = Minecraft.getInstance().player;

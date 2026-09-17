@@ -6,7 +6,7 @@
 
 **Dye your nether portals any color you want.**
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.2-brightgreen)](https://www.minecraft.net/) [![Loaders](https://img.shields.io/badge/Loaders-Fabric%20%7C%20NeoForge-blue)]() [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE.txt)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-brightgreen)](https://www.minecraft.net/) [![Loaders](https://img.shields.io/badge/Loaders-Fabric%20%7C%20NeoForge-blue)]() [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE.txt)
 
 </div>
 
@@ -41,6 +41,7 @@ follows you through the full portal experience, not just the block.
 
 | Minecraft | Mod version | Loaders          |
 | --------- | ----------- | ---------------- |
+| 26.3      | 1.1         | Fabric, NeoForge |
 | 26.2      | 1.1         | Fabric, NeoForge |
 | 26.1      | 1.1         | Fabric, NeoForge |
 | 1.21.11   | 1.0         | Fabric, NeoForge |
